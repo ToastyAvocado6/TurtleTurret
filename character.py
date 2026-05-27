@@ -11,8 +11,8 @@ class PlayerTurtle:
     def aim_at_mouse(self, mouse_position):
         mx, my = mouse_position
         
-        run = mx - self.x
+        run = mx - self.x #horizontal and vertical distance from turtle
         rise = my - self.y
         
-        radians = math.atan2(rise, run)
+        radians = math.atan2(rise, run) #use some maths to calculate angle the turtle should rotate
         self.angle = math.degrees(radians)
