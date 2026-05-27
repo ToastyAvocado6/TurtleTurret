@@ -18,11 +18,14 @@ TITLE = "TURTLE TURRET"
 CENTER_X = WIDTH // 2
 CENTER_Y = HEIGHT // 2
 
+render_frame_count = 1
+FPS_LOCK = 3  # Higher = choppier
+
 game_over = False
 game_started = False
 survival_time = 0
 spawn_timer = 0
-spawn_frequency = 90  
+spawn_frequency = 1000
 
 player = PlayerTurtle(CENTER_X, CENTER_Y)
 initialized = False
@@ -50,7 +53,12 @@ def get_cached_image(image_name, size=None):
     return processed_surf
 
 def draw():
-    global initialized
+    global initialized, render_frame_count
+    
+    if game_started and not game_over:
+        render_frame_count += 1
+        if render_frame_count % FPS_LOCK != 0:
+            return
     
     if not initialized:
         pygame.display.set_mode((WIDTH, HEIGHT)) 
@@ -65,7 +73,7 @@ def draw():
     
     if not game_started:
         screen.draw.text(TITLE, center=(CENTER_X, CENTER_Y - 40), fontsize=65, color="cyan")
-        screen.draw.text("PRESS SPACE TO POP UP", center=(CENTER_X, CENTER_Y + 30), fontsize=35, color="white")
+        screen.draw.text("PRESS SPACE TO POP UP", center=(CENTER_X, CENTER_Y + 30), fontsize=30, color="white")
         
     elif not game_over:
         for b in bubbles:
@@ -107,11 +115,11 @@ def draw():
         rect = rotated_image.get_rect(center=(player.x, player.y))
         screen.blit(rotated_image, rect)
             
-        screen.draw.text(f"Survival Time: {int(survival_time)}s", topleft=(30, 30), fontsize=35, color="white")
-        screen.draw.text(f"HP: {player.hearts} / 5", topright=(WIDTH - 30, 30), fontsize=35, color="pink")
+        screen.draw.text(f"SCORE: {int(survival_time)}s", topleft=(30, 30), fontsize=35, color="white")
+        screen.draw.text(f"HEALTH: {player.hearts} / 5", topright=(WIDTH - 30, 30), fontsize=35, color="pink")
     else:
         screen.draw.text("GAME OVER", center=(CENTER_X, CENTER_Y - 50), fontsize=60, color="red")
-        screen.draw.text(f"Final Survival Time: {int(survival_time)} Seconds", center=(CENTER_X, CENTER_Y + 10), fontsize=40, color="white")
+        screen.draw.text(f"Final SCORE: {int(survival_time)} Seconds", center=(CENTER_X, CENTER_Y + 10), fontsize=40, color="white")
         screen.draw.text("Press R to Restart", center=(CENTER_X, CENTER_Y + 70), fontsize=30, color="yellow")
 
 def update():
@@ -123,7 +131,8 @@ def update():
     survival_time += 1 / 60
     spawn_timer += 1
     
-    spawn_frequency = max(25, 90 - int(survival_time // 10) * 10)
+    ## DIFFICULTY CURVE SETTTNGS:
+    spawn_frequency = max(10, 45 - int(survival_time // 8) * 5)
     
     if spawn_timer >= spawn_frequency:
         spawn_timer = 0
@@ -146,11 +155,15 @@ def update():
             ripples.remove(ripple)
 
     for b in bubbles[:]:
-        b.update_position(bubbles)  # Pass array reference directly to fix bubble removal
+        b.update_position(bubbles)
     for bottle in bottles[:]:
         bottle.update_position()
+        if random.random() < 0.15:  
+            bottle.render_angle += random.randint(-3, 3)
     for lettuce in lettuces[:]:
         lettuce.update_position()
+        if random.random() < 0.15:  
+            lettuce.render_angle += random.randint(-3, 3)
 
     check_collisions()
 
@@ -234,7 +247,8 @@ def check_collisions():
             player.hearts -= 1
             bottles.remove(bottle)
             if player.hearts <= 0:
-                game_over = True
+                pass
+                #game_over = True
 
     for lettuce in lettuces[:]:
         dist_to_center = ((lettuce.x - CENTER_X)**2 + (lettuce.y - CENTER_Y)**2)**0.5
