@@ -1,5 +1,5 @@
 import math
-import sys
+import random
 
 class MovingObject:
     def __init__(self, start_x, start_y, target_x, target_y, speed, image_name):
@@ -23,49 +23,52 @@ class MovingObject:
         self.x += self.dx
         self.y += self.dy
 
-#PLASTIC BOTTLE
+
 class PlasticBottle(MovingObject):
     def __init__(self, start_x, start_y, target_x, target_y):
         super().__init__(start_x, start_y, target_x, target_y, 2, 'plastic')
         self.health = 2
+        self.render_angle = random.randint(0, 360)
 
     def hit(self):
         self.health -= 1
         if self.health == 1:
-            self.image = 'plastic_2' # Swaps to cracked art asset
+            self.image = 'plastic_2' 
         return self.health <= 0
+
 
 class Lettuce(MovingObject):
     def __init__(self, start_x, start_y, target_x, target_y):
         super().__init__(start_x, start_y, target_x, target_y, 3, 'lettuce')
         self.health = 1
+        self.render_angle = random.randint(0, 360)
 
     def hit(self):
         self.health -= 1
-        return self.health <= 0 # Returns True instantly on first hit
-    
-    #BUBBLE
+        return self.health <= 0 
+
+
 class Bubble(MovingObject):
     def __init__(self, start_x, start_y, mouse_x, mouse_y):
         super().__init__(start_x, start_y, mouse_x, mouse_y, 8, 'bubble')
         self.is_popping = False
         self.pop_frames = ['bubble', 'bubble_2', 'bubble_3', 'bubble_4']
-        self.frame_index = 0
-        self.animation_speed = 0.3
+        self.frame_index = 0.0
+        self.animation_speed = 0.25
 
     def pop(self):
         self.is_popping = True
         self.dx = 0
         self.dy = 0
                 
-    def update_position(self):
+    def update_position(self, tracking_list):
         if not self.is_popping:
             super().update_position()
         else:
             self.frame_index += self.animation_speed
-            if self.frame_index >= len(self.pop_frames):
-                main_module = sys.modules['__main__']
-                if hasattr(main_module, 'bubbles') and self in main_module.bubbles:
-                    main_module.bubbles.remove(self)
+            # FIX: Cleanly drops the object from the active scene array immediately on animation wrap
+            if int(self.frame_index) >= len(self.pop_frames):
+                if self in tracking_list:
+                    tracking_list.remove(self)
             else:
                 self.image = self.pop_frames[int(self.frame_index)]
