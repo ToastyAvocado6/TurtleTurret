@@ -26,7 +26,7 @@ class MovingObject:
 
 class PlasticBottle(MovingObject):
     def __init__(self, start_x, start_y, target_x, target_y):
-        super().__init__(start_x, start_y, target_x, target_y, 2, 'plastic')
+        super().__init__(start_x, start_y, target_x, target_y, 2.1, 'plastic')
         self.health = 2
         self.render_angle = random.randint(0, 360)
 
@@ -39,7 +39,7 @@ class PlasticBottle(MovingObject):
 
 class Lettuce(MovingObject):
     def __init__(self, start_x, start_y, target_x, target_y):
-        super().__init__(start_x, start_y, target_x, target_y, 3, 'lettuce')
+        super().__init__(start_x, start_y, target_x, target_y, 1.6, 'lettuce')
         self.health = 1
         self.render_angle = random.randint(0, 360)
 

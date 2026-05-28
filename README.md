@@ -1,4 +1,4 @@
-# 🐢 Turtle Turret
+# 🐢 TURTLE TURRET
 
 A fast-paced 2D arcade shooter built with Python and Pygame Zero. Aim 360 degrees to blast ocean garbage with bubbles and eat lettuce to survive!
 

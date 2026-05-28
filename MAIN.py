@@ -19,7 +19,7 @@ CENTER_X = WIDTH // 2
 CENTER_Y = HEIGHT // 2
 
 render_frame_count = 1
-FPS_LOCK = 3  # Higher = choppier
+FPS_LOCK = 3  # Higher = choppier for stopmotion style framerate
 
 game_over = False
 game_started = False
@@ -36,9 +36,10 @@ bubbles = []
 ripples = []
 
 IMAGE_CACHE = {}
+WATER_HAZE_SURFACE = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+WATER_HAZE_SURFACE.fill((2, 28, 15, 30))
 
 def get_cached_image(image_name, size=None):
-    """Loads and smooth-scales images once, keeping them in RAM for speed."""
     cache_key = (image_name, size)
     if cache_key in IMAGE_CACHE:
         return IMAGE_CACHE[cache_key]
@@ -61,7 +62,7 @@ def draw():
             return
     
     if not initialized:
-        pygame.display.set_mode((WIDTH, HEIGHT)) 
+        pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.event.pump()
         player.aim_at_mouse(pygame.mouse.get_pos())
         initialized = True
@@ -72,8 +73,8 @@ def draw():
     screen.blit(bg_scaled, (0, 0))
     
     if not game_started:
-        screen.draw.text(TITLE, center=(CENTER_X, CENTER_Y - 40), fontsize=65, color="cyan")
-        screen.draw.text("PRESS SPACE TO POP UP", center=(CENTER_X, CENTER_Y + 30), fontsize=30, color="white")
+        screen.draw.text(TITLE, center=(CENTER_X, CENTER_Y - 40), fontsize=65, color="cyan", fontname="chango")
+        screen.draw.text("PRESS SPACE TO START!", center=(CENTER_X, CENTER_Y + 30), fontsize=20, color="white", fontname="chango")
         
     elif not game_over:
         for b in bubbles:
@@ -104,23 +105,21 @@ def draw():
             player.current_size = 0.0
         if player.current_size < 70.0:
             player.current_size += 3.5
-            
-            
-        base_turtle_img = images.load(player.image)
-        scaled_turtle = pygame.transform.smoothscale(base_turtle_img, (int(player.current_size), int(player.current_size)))
         
+        screen.blit(WATER_HAZE_SURFACE, (0, 0))
+            
+        scaled_turtle = get_cached_image(player.image, (int(player.current_size), int(player.current_size)))
         corrected_angle = -player.angle - 90
         
         rotated_image = pygame.transform.rotate(scaled_turtle, corrected_angle)
         rect = rotated_image.get_rect(center=(player.x, player.y))
         screen.blit(rotated_image, rect)
-            
-        screen.draw.text(f"SCORE: {int(survival_time)}s", topleft=(30, 30), fontsize=35, color="white")
-        screen.draw.text(f"HEALTH: {player.hearts} / 5", topright=(WIDTH - 30, 30), fontsize=35, color="pink")
+        screen.draw.text(f"SCORE: {int(survival_time)}s", topleft=(30, 30), fontsize=30, color="white", fontname="chango")
+        screen.draw.text(f"HEALTH: {player.hearts} / 5", topright=(WIDTH - 30, 30), fontsize=30, color="white", fontname="chango")
     else:
-        screen.draw.text("GAME OVER", center=(CENTER_X, CENTER_Y - 50), fontsize=60, color="red")
-        screen.draw.text(f"Final SCORE: {int(survival_time)} Seconds", center=(CENTER_X, CENTER_Y + 10), fontsize=40, color="white")
-        screen.draw.text("Press R to Restart", center=(CENTER_X, CENTER_Y + 70), fontsize=30, color="yellow")
+        screen.draw.text("GAME OVER", center=(CENTER_X, CENTER_Y - 50), fontsize=50, color="red")
+        screen.draw.text(f"Final SCORE: {int(survival_time)} Seconds", center=(CENTER_X, CENTER_Y + 10), fontsize=20, color="white", fontname="chango")
+        screen.draw.text("Press R to Restart", center=(CENTER_X, CENTER_Y + 70), fontsize=30, color="yellow", fontname="chango")
 
 def update():
     global game_over, game_started, survival_time, spawn_timer, spawn_frequency
@@ -143,9 +142,8 @@ def update():
             'radius': 10.0,   # Starts tight near the turtle core
             'alpha': 80.0,   # Starts quite visible (out of 255 max transparency)
             'speed': 0.5,     # Speed expanding outward
-            'fade': 0.3      # Speed fading away
+            'fade': 0.3      # Speed fading awaypgzrun MAIN.py
         })
-
     for ripple in ripples[:]:
         ripple['radius'] += ripple['speed']
         ripple['alpha'] -= ripple['fade']
@@ -173,24 +171,30 @@ def on_mouse_move(pos):
 
 def on_mouse_down(pos):
     if game_started and not game_over:
+        pass #if mouse down
+        
+
+def on_key_down(key):
+    global game_over, game_started, survival_time, spawn_timer, spawn_frequency, bottles, lettuces, bubbles, player
+    
+    if key == keys.SPACE and not game_started:
+        game_started = True
+        return
+        
+    if key == keys.SPACE and game_started and not game_over:
         import math
 
         shooting_angle = player.angle 
-        
         rad = math.radians(shooting_angle)
         
         spawn_x = player.x + math.cos(rad) * 35
         spawn_y = player.y + math.sin(rad) * 35
         
-        new_bubble = Bubble(spawn_x, spawn_y, pos[0], pos[1])
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        new_bubble = Bubble(spawn_x, spawn_y, mouse_x, mouse_y) # spawn bubbles!
         bubbles.append(new_bubble)
         
         player.current_size = 56.0
-
-def on_key_down(key):
-    global game_over, game_started, survival_time, spawn_timer, spawn_frequency, bottles, lettuces, bubbles, player
-    if key == keys.SPACE and not game_started:
-        game_started = True
         
     if key == keys.R and game_over:
         player.hearts = 5
